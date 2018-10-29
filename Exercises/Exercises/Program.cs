@@ -11,90 +11,66 @@ namespace Exercises
     {
         static void Main(string[] args)
         {
-            var stopWords = File.ReadAllText("stop_words.txt");
-            var secondMem = new List<SecondMem>();
+            var stopWordsStr = File.ReadAllText("stop_words.txt");
+            var stopWords = stopWordsStr.Split(',').ToList();
             var inputLines = File.ReadAllLines("input.txt");
+            var i = 0;
+            int? start_char = null;
+            var found = false;
+            var wordsFrequence = new List<WordsFrequency>();
             foreach (var line in inputLines)
             {
-                var data = new OldTimes
+                start_char = null;
+                i = 0;
+                foreach (var c in line)
                 {
-                    StopWords = stopWords.Split(',').ToList()
-                };
-                data.NewLine = line;
-                if (data.NewLine == "")
-                    break;
-                if (data.NewLine[data.NewLine.Length - 1] != '\n')
-                {
-                    data.NewLine += "\n";
-                }
-                foreach (var c in data.NewLine)
-                {
-                    if (data.StartCharIndex == null)
+                    if (start_char == null)
                     {
-                        if (Char.IsLetterOrDigit(c))
+                        if (char.IsLetterOrDigit(c))
                         {
-                            data.StartCharIndex = data.IndexOfChars;
+                            start_char = i;
                         }
                     }
                     else
                     {
-                        if (!Char.IsLetterOrDigit(c))
+                        if (!char.IsLetterOrDigit(c))
                         {
-                            data.WordIsFound = false;
-                            data.IndexOfChars++;
-                            int length = data.IndexOfChars - data.StartCharIndex.GetValueOrDefault();
-                            data.Word = line.Substring(data.StartCharIndex.GetValueOrDefault(), length);
-
-                            if (data.Word.Length > 2 && !data.StopWords.Contains(data.Word))
+                            found = false;
+                            var length = i - start_char.GetValueOrDefault();
+                            var word = line.Substring(start_char.GetValueOrDefault(), length).ToLower();
+                            if (!stopWords.Contains(word))
                             {
-                                if (secondMem.Any(x => x.Word == data.Word))
+                                if (wordsFrequence.Any(x => x.Word == word))
                                 {
-                                    secondMem.FirstOrDefault(x => x.Word == data.Word).Frequancy++;
+                                    wordsFrequence.FirstOrDefault(x => x.Word == word).Freq++;
                                 }
                                 else
                                 {
-                                    secondMem.Add(new SecondMem
-                                    {
-                                        Frequancy = 1,
-                                        Word = data.Word
+                                    wordsFrequence.Add(new WordsFrequency {
+                                        Word = word,
+                                        Freq = 1
                                     });
                                 }
-
                             }
-                            data.StartCharIndex = null;
+                            start_char = null;
                         }
-                        data.IndexOfChars += 1;
                     }
+                    i++;
                 }
-
             }
-
-            // Process line
-            var Top25 = secondMem.OrderByDescending(x => x.Frequancy).ToList();
-            foreach(var entry in Top25)
+            foreach (var entry in wordsFrequence)
             {
 
-                Console.WriteLine(entry.Word+" - "+entry.Frequancy);
+                Console.WriteLine(entry.Word + " - " + entry.Freq);
             }
             Console.ReadKey();
         }
     }
 
-    public class OldTimes
-    {
-        public List<string> StopWords { get; set; }
-        public string NewLine { get; set; }
-        public int? StartCharIndex { get; set; } = null;
-        public int IndexOfChars { get; set; } = 0;
-        public bool WordIsFound { get; set; } = false;
-        public string Word { get; set; } = "";
-        public string WorldTemp { get; set; } = "";
-        public int Frequesncy { get; set; } = 0;
-    }
-
-    public class SecondMem
+    public class WordsFrequency
     {
         public string Word { get; set; }
-        public int Frequancy { get; set; }
+        public int Freq { get; set; }
+
     }
 }
